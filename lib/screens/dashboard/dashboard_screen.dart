@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:pos/screens/products/product_finder_screen.dart';
 import '../../theme/app_theme.dart';
 import '../../services/auth_service.dart';
 import '../login_screen.dart';
@@ -400,6 +401,10 @@ class HomeTab extends StatelessWidget {
 
   Widget _buildModulesGrid(BuildContext context) {
     final modules = [
+      ModuleData('Find', 'Search Product', Icons.search_rounded, 
+      AppTheme.info, () => Navigator.push(context, 
+      MaterialPageRoute(builder: (_) => const ProductFinderScreen()))),
+      
       ModuleData('GRN', 'Goods Received', Icons.receipt_long_rounded, 
           const Color(0xFF8B5CF6), () => Navigator.push(context, 
           MaterialPageRoute(builder: (_) => const GRNListScreen()))),
