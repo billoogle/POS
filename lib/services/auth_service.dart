@@ -87,6 +87,98 @@ class AuthService {
     }
   }
 
+  // === NEW: Update User Profile Data (Name, Business Name) ===
+  Future<Map<String, dynamic>> updateUserData({
+    required String fullName,
+    required String businessName,
+  }) async {
+    if (currentUser == null) {
+      return {'success': false, 'message': 'User not authenticated'};
+    }
+    try {
+      await _firestore.collection('users').doc(currentUser!.uid).update({
+        'fullName': fullName,
+        'businessName': businessName,
+      });
+      return {'success': true, 'message': 'Profile updated successfully'};
+    } catch (e) {
+      return {'success': false, 'message': 'Error updating profile'};
+    }
+  }
+
+  // === NEW: Re-authenticate user (required for sensitive operations) ===
+  Future<AuthCredential?> _reauthenticateUser(String password) async {
+    if (currentUser == null) return null;
+    try {
+      return EmailAuthProvider.credential(
+        email: currentUser!.email!,
+        password: password,
+      );
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // === NEW: Update User Email ===
+  Future<Map<String, dynamic>> updateUserEmail({
+    required String newEmail,
+    required String currentPassword,
+  }) async {
+    if (currentUser == null) {
+      return {'success': false, 'message': 'User not authenticated'};
+    }
+    try {
+      final credential = await _reauthenticateUser(currentPassword);
+      if (credential == null) {
+        return {'success': false, 'message': 'Re-authentication failed'};
+      }
+
+      await currentUser!.reauthenticateWithCredential(credential);
+      
+      // Use verifyBeforeUpdateEmail for better security
+      await currentUser!.verifyBeforeUpdateEmail(newEmail);
+
+      // Update email in Firestore as well
+      await _firestore.collection('users').doc(currentUser!.uid).update({
+        'email': newEmail,
+      });
+
+      return {
+        'success': true,
+        'message': 'Verification email sent to $newEmail. Please verify to update.'
+      };
+    } on FirebaseAuthException catch (e) {
+      return {'success': false, 'message': _getErrorMessage(e.code)};
+    } catch (e) {
+      return {'success': false, 'message': 'An unexpected error occurred'};
+    }
+  }
+
+  // === NEW: Update User Password ===
+  Future<Map<String, dynamic>> updateUserPassword({
+    required String newPassword,
+    required String currentPassword,
+  }) async {
+    if (currentUser == null) {
+      return {'success': false, 'message': 'User not authenticated'};
+    }
+    try {
+      final credential = await _reauthenticateUser(currentPassword);
+      if (credential == null) {
+        return {'success': false, 'message': 'Re-authentication failed'};
+      }
+
+      await currentUser!.reauthenticateWithCredential(credential);
+      await currentUser!.updatePassword(newPassword);
+
+      return {'success': true, 'message': 'Password updated successfully'};
+    } on FirebaseAuthException catch (e) {
+      return {'success': false, 'message': _getErrorMessage(e.code)};
+    } catch (e) {
+      return {'success': false, 'message': 'An unexpected error occurred'};
+    }
+  }
+
   // Error message handler
   String _getErrorMessage(String code) {
     switch (code) {
@@ -102,6 +194,8 @@ class AuthService {
         return 'Incorrect password';
       case 'too-many-requests':
         return 'Too many attempts. Please try again later';
+      case 'requires-recent-login':
+        return 'This operation is sensitive and requires recent authentication. Please log in again.';
       default:
         return 'An error occurred. Please try again';
     }

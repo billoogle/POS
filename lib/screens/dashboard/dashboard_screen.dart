@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:intl/intl.dart'; // formatting ke liye
 import 'package:pos/screens/products/product_finder_screen.dart';
+import 'package:pos/services/product_service.dart'; // Product service
+import 'package:pos/services/sale_service.dart'; // Sale service
 import '../../theme/app_theme.dart';
 import '../../services/auth_service.dart';
 import '../login_screen.dart';
@@ -11,6 +14,7 @@ import '../grn/grn_list_screen.dart';
 import '../sales/pos_screen.dart';
 import '../sales/sales_history_screen.dart';
 import '../reports/reports_screen.dart';
+import '../settings/settings_screen.dart'; // Settings screen import
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({Key? key}) : super(key: key);
@@ -282,9 +286,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 }
 
-// HOME TAB
-class HomeTab extends StatelessWidget {
+// === UPDATED: HOME TAB (StatefulWidget) ===
+class HomeTab extends StatefulWidget {
   const HomeTab({Key? key}) : super(key: key);
+
+  @override
+  State<HomeTab> createState() => _HomeTabState();
+}
+
+class _HomeTabState extends State<HomeTab> {
+  final SaleService _saleService = SaleService();
+  final ProductService _productService = ProductService();
+  
+  late Stream<Map<String, dynamic>> _salesStatsStream;
+  late Stream<int> _productCountStream;
+
+  @override
+  void initState() {
+    super.initState();
+    // Streams ko initialize karein
+    _salesStatsStream = _saleService.getSalesStatsStream();
+    _productCountStream = _productService.getProductCountStream();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -308,25 +331,52 @@ class HomeTab extends StatelessWidget {
   }
 
   Widget _buildQuickStats() {
+    final currencyFormat = NumberFormat.compactCurrency(
+      locale: 'en_PK',
+      symbol: 'Rs. ',
+      decimalDigits: 0,
+    );
+
     return Row(
       children: [
+        // Today's Sales Stat Card
         Expanded(
-          child: _buildStatCard(
-            'Sales',
-            'Rs. 0',
-            Icons.trending_up_rounded,
-            AppTheme.success,
-            0,
+          child: StreamBuilder<Map<String, dynamic>>(
+            stream: _salesStatsStream,
+            builder: (context, snapshot) {
+              String value = '...';
+              if (snapshot.hasData) {
+                value = currencyFormat.format(snapshot.data?['todayRevenue'] ?? 0);
+              }
+              return _buildStatCard(
+                "Today's Sales",
+                value,
+                Icons.trending_up_rounded,
+                AppTheme.success,
+                0,
+              );
+            },
           ),
         ),
         const SizedBox(width: 12),
+        
+        // Total Products Stat Card
         Expanded(
-          child: _buildStatCard(
-            'Products',
-            '0',
-            Icons.inventory_2_rounded,
-            AppTheme.primaryCyan,
-            100,
+          child: StreamBuilder<int>(
+            stream: _productCountStream,
+            builder: (context, snapshot) {
+              String value = '...';
+              if (snapshot.hasData) {
+                value = snapshot.data?.toString() ?? '0';
+              }
+              return _buildStatCard(
+                'Products',
+                value,
+                Icons.inventory_2_rounded,
+                AppTheme.primaryCyan,
+                100,
+              );
+            },
           ),
         ),
       ],
@@ -417,6 +467,10 @@ class HomeTab extends StatelessWidget {
       ModuleData('Reports', 'Analytics', Icons.analytics_rounded, 
           AppTheme.info, () => Navigator.push(context, 
           MaterialPageRoute(builder: (_) => const ReportsScreen()))),
+      // === NEW: Settings Card Added ===
+      ModuleData('Settings', 'Manage Account', Icons.settings_rounded, 
+          AppTheme.darkGray, () => Navigator.push(context, 
+          MaterialPageRoute(builder: (_) => const SettingsScreen()))),
     ];
 
     return GridView.builder(

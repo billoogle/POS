@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_animate/flutter_animate.dart'; // Animation ke liye import
 import '../../models/vendor_model.dart';
 import '../../models/product_model.dart';
 import '../../models/grn_model.dart';
@@ -19,7 +20,11 @@ class _CreateGRNScreenState extends State<CreateGRNScreen> {
   final _vendorService = VendorService();
   final _productService = ProductService();
   final _grnService = GRNService();
-  final _searchController = TextEditingController();
+  
+  // Autocomplete ke liye FocusNode aur GlobalKey
+  final FocusNode _autocompleteFocusNode = FocusNode();
+  final GlobalKey _autocompleteKey = GlobalKey();
+  final _searchController = TextEditingController(); // Ye Autocomplete use karega
 
   List<Vendor> _vendors = [];
   List<Product> _allProducts = [];
@@ -37,6 +42,7 @@ class _CreateGRNScreenState extends State<CreateGRNScreen> {
   @override
   void dispose() {
     _searchController.dispose();
+    _autocompleteFocusNode.dispose(); // Focus node ko dispose karein
     super.dispose();
   }
 
@@ -83,71 +89,11 @@ class _CreateGRNScreenState extends State<CreateGRNScreen> {
     }
   }
 
-  void _searchProduct() {
-    if (_searchController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Enter product name to search')),
-      );
-      return;
-    }
+  // YE FUNCTION AB AUTACOMPLETE OPTIONS BUILDER ISTEMAL KAREGA
+  // void _searchProduct() { ... }
 
-    final query = _searchController.text.toLowerCase();
-    final products = _allProducts.where((p) => 
-      p.name.toLowerCase().contains(query) ||
-      p.barcode.toLowerCase().contains(query)
-    ).toList();
-
-    if (products.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No products found')),
-      );
-      return;
-    }
-
-    if (products.length == 1) {
-      _showAddProductDialog(products.first);
-    } else {
-      _showProductSelectionDialog(products);
-    }
-  }
-
-  void _showProductSelectionDialog(List<Product> products) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Select Product (${products.length} found)'),
-        content: SizedBox(
-          width: double.maxFinite,
-          child: ListView.builder(
-            shrinkWrap: true,
-            itemCount: products.length,
-            itemBuilder: (context, index) {
-              final product = products[index];
-              return ListTile(
-                leading: product.imageUrl.isNotEmpty
-                    ? ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.network(
-                          product.imageUrl,
-                          width: 50,
-                          height: 50,
-                          fit: BoxFit.cover,
-                        ),
-                      )
-                    : const Icon(Icons.inventory_2),
-                title: Text(product.name),
-                subtitle: Text('Stock: ${product.stock}'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _showAddProductDialog(product);
-                },
-              );
-            },
-          ),
-        ),
-      ),
-    );
-  }
+  // YE BHI AB AUTACOMPLETE LISTVIEW ISTEMAL KAREGA
+  // void _showProductSelectionDialog(List<Product> products) { ... }
 
   void _showAddProductDialog(Product product) {
     final quantityController = TextEditingController();
@@ -161,6 +107,7 @@ class _CreateGRNScreenState extends State<CreateGRNScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(product.name),
         content: SingleChildScrollView(
           child: Column(
@@ -169,6 +116,8 @@ class _CreateGRNScreenState extends State<CreateGRNScreen> {
               TextField(
                 controller: quantityController,
                 keyboardType: TextInputType.number,
+                autofocus: true, // Quantity par auto focus
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 decoration: const InputDecoration(
                   labelText: 'Quantity *',
                   border: OutlineInputBorder(),
@@ -178,6 +127,7 @@ class _CreateGRNScreenState extends State<CreateGRNScreen> {
               TextField(
                 controller: purchaseController,
                 keyboardType: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 decoration: const InputDecoration(
                   labelText: 'Purchase Price *',
                   prefixText: 'Rs. ',
@@ -188,6 +138,7 @@ class _CreateGRNScreenState extends State<CreateGRNScreen> {
               TextField(
                 controller: saleController,
                 keyboardType: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 decoration: const InputDecoration(
                   labelText: 'Sale Price *',
                   prefixText: 'Rs. ',
@@ -223,6 +174,7 @@ class _CreateGRNScreenState extends State<CreateGRNScreen> {
               });
 
               _searchController.clear();
+              _autocompleteFocusNode.unfocus(); // Focus hatayein
               Navigator.pop(context);
             },
             child: const Text('Add'),
@@ -295,6 +247,19 @@ class _CreateGRNScreenState extends State<CreateGRNScreen> {
     }
   }
 
+  // === NEW: Autocomplete Options Builder Function ===
+  Iterable<Product> _buildAutocompleteOptions(TextEditingValue textEditingValue) {
+    if (textEditingValue.text.isEmpty) {
+      return const Iterable<Product>.empty();
+    }
+    final query = textEditingValue.text.toLowerCase();
+    // Naam ya barcode se search karein
+    return _allProducts.where((Product product) {
+      return product.name.toLowerCase().contains(query) ||
+          product.barcode.toLowerCase().contains(query);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -328,33 +293,102 @@ class _CreateGRNScreenState extends State<CreateGRNScreen> {
             color: Colors.grey[100],
             child: Column(
               children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _searchController,
-                        decoration: InputDecoration(
-                          hintText: 'Search product...',
-                          filled: true,
-                          fillColor: Colors.white,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          prefixIcon: const Icon(Icons.search),
+                // === UPDATED: Replaced TextField+Button with Autocomplete ===
+                Autocomplete<Product>(
+                  key: _autocompleteKey,
+                  focusNode: _autocompleteFocusNode,
+                  textEditingController: _searchController, // Controller yahan use karein
+                  optionsBuilder: _buildAutocompleteOptions,
+                  displayStringForOption: (Product option) => option.name,
+                  onSelected: (Product selection) {
+                    // Jab product select ho, dialog dikhayein
+                    _showAddProductDialog(selection);
+                  },
+                  fieldViewBuilder: (BuildContext context,
+                      TextEditingController fieldTextEditingController,
+                      FocusNode fieldFocusNode,
+                      VoidCallback onFieldSubmitted) {
+                    
+                    // _searchController ko field controller se link karein
+                    // Humne ye state controller mein pass kar diya hai
+                    
+                    return TextField(
+                      controller: fieldTextEditingController,
+                      focusNode: fieldFocusNode,
+                      decoration: InputDecoration(
+                        hintText: 'Search product by name or barcode...',
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none, // Border hata di
                         ),
-                        onSubmitted: (_) => _searchProduct(),
+                        prefixIcon: const Icon(Icons.search),
+                        suffixIcon: fieldTextEditingController.text.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: () {
+                                fieldTextEditingController.clear();
+                              },
+                            )
+                          : null,
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    ElevatedButton(
-                      onPressed: _searchProduct,
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.all(16),
+                      onSubmitted: (value) {
+                         // Enter dabane par submit (optional, kyunki list se select hoga)
+                         onFieldSubmitted();
+                      },
+                    );
+                  },
+                  optionsViewBuilder: (BuildContext context,
+                      AutocompleteOnSelected<Product> onSelected,
+                      Iterable<Product> options) {
+                    return Align(
+                      alignment: Alignment.topLeft,
+                      child: Material(
+                        elevation: 4.0,
+                        borderRadius: BorderRadius.circular(12),
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            maxHeight: 250, // List ki max height
+                            // Screen width se thora kam, padding ke liye
+                            maxWidth: MediaQuery.of(context).size.width - 32, 
+                          ),
+                          child: ListView.builder(
+                            padding: EdgeInsets.zero,
+                            shrinkWrap: true,
+                            itemCount: options.length,
+                            itemBuilder: (BuildContext context, int index) {
+                              final Product option = options.elementAt(index);
+                              return InkWell(
+                                onTap: () {
+                                  onSelected(option);
+                                },
+                                child: ListTile(
+                                  leading: option.imageUrl.isNotEmpty
+                                      ? ClipRRect(
+                                          borderRadius: BorderRadius.circular(8),
+                                          child: Image.network(
+                                            option.imageUrl,
+                                            width: 40,
+                                            height: 40,
+                                            fit: BoxFit.cover,
+                                            errorBuilder: (ctx, err, st) => const Icon(Icons.inventory_2_outlined),
+                                          ),
+                                        )
+                                      : const Icon(Icons.inventory_2_outlined, color: Colors.grey),
+                                  title: Text(option.name),
+                                  subtitle: Text('Stock: ${option.stock} | Barcode: ${option.barcode}'),
+                                ),
+                              ).animate().fadeIn(duration: 200.ms, delay: (index * 20).ms);
+                            },
+                          ),
+                        ),
                       ),
-                      child: const Icon(Icons.search),
-                    ),
-                  ],
+                    );
+                  },
                 ),
+                // === End of Autocomplete ===
+                
                 const SizedBox(height: 12),
                 SizedBox(
                   width: double.infinity,
@@ -398,8 +432,8 @@ class _CreateGRNScreenState extends State<CreateGRNScreen> {
                               : const Icon(Icons.inventory_2),
                           title: Text(item.product.name),
                           subtitle: Text(
-                            'Qty: ${item.quantity} × Rs.${item.purchasePrice}\n'
-                            'Sale: Rs.${item.salePrice}',
+                            'Qty: ${item.quantity} × Rs.${item.purchasePrice.toStringAsFixed(0)}\n'
+                            'Sale: Rs.${item.salePrice.toStringAsFixed(0)}',
                           ),
                           trailing: Row(
                             mainAxisSize: MainAxisSize.min,

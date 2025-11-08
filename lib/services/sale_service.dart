@@ -190,7 +190,48 @@ class SaleService {
     });
   }
 
-  // Get sales stats
+  // === UPDATED: Get sales stats as a Stream ===
+  Stream<Map<String, dynamic>> getSalesStatsStream() {
+    if (_userId == null) return Stream.value({});
+
+    return _salesRef
+        .where('userId', isEqualTo: _userId)
+        .snapshots()
+        .map((salesSnapshot) {
+      
+      double totalRevenue = 0;
+      int totalSales = salesSnapshot.docs.length;
+
+      for (var doc in salesSnapshot.docs) {
+        final sale = Sale.fromMap(doc.data() as Map<String, dynamic>);
+        totalRevenue += sale.totalAmount;
+      }
+
+      // Today's sales
+      final today = DateTime.now();
+      final startOfDay = DateTime(today.year, today.month, today.day);
+      
+      double todayRevenue = 0;
+      int todaySales = 0;
+
+      for (var doc in salesSnapshot.docs) {
+        final sale = Sale.fromMap(doc.data() as Map<String, dynamic>);
+        if (sale.createdAt.isAfter(startOfDay)) {
+          todayRevenue += sale.totalAmount;
+          todaySales++;
+        }
+      }
+
+      return {
+        'totalRevenue': totalRevenue,
+        'totalSales': totalSales,
+        'todayRevenue': todayRevenue,
+        'todaySales': todaySales,
+      };
+    });
+  }
+
+  // Get sales stats (Future-based, for reports)
   Future<Map<String, dynamic>> getSalesStats() async {
     if (_userId == null) return {};
 

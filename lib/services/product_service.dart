@@ -132,6 +132,16 @@ class ProductService {
     });
   }
 
+  // === NEW: Get total product count (Stream) ===
+  Stream<int> getProductCountStream() {
+    if (_userId == null) return Stream.value(0);
+
+    return _productsRef
+        .where('userId', isEqualTo: _userId)
+        .snapshots()
+        .map((snapshot) => snapshot.docs.length);
+  }
+
   // Get products by category
   Stream<List<Product>> getProductsByCategory(String categoryId) {
     if (_userId == null) return Stream.value([]);
