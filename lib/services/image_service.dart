@@ -129,7 +129,7 @@ class ImageService {
             'message': 'Image uploaded successfully! ✓',
           };
         } else {
-          print('❌ Upload failed: ${jsonResponse}');
+          print('❌ Upload failed: $jsonResponse');
           return {
             'success': false,
             'message': 'Upload failed: ${jsonResponse['error']?['message'] ?? 'Unknown error'}',

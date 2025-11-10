@@ -6,7 +6,7 @@ import '../../services/auth_service.dart';
 import '../../services/reports_pdf_service.dart';
 
 class SalesReportScreen extends StatefulWidget {
-  const SalesReportScreen({Key? key}) : super(key: key);
+  const SalesReportScreen({super.key});
 
   @override
   State<SalesReportScreen> createState() => _SalesReportScreenState();

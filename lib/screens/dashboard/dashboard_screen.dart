@@ -17,7 +17,7 @@ import '../reports/reports_screen.dart';
 import '../settings/settings_screen.dart'; // Settings screen import
 
 class DashboardScreen extends StatefulWidget {
-  const DashboardScreen({Key? key}) : super(key: key);
+  const DashboardScreen({super.key});
 
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
@@ -288,7 +288,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
 // === UPDATED: HOME TAB (StatefulWidget) ===
 class HomeTab extends StatefulWidget {
-  const HomeTab({Key? key}) : super(key: key);
+  const HomeTab({super.key});
 
   @override
   State<HomeTab> createState() => _HomeTabState();

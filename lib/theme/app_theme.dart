@@ -47,12 +47,10 @@ class AppTheme {
         secondary: primaryGold,
         tertiary: navyBlue,
         surface: white,
-        background: lightGray,
         error: error,
         onPrimary: white,
         onSecondary: darkNavy,
         onSurface: darkNavy,
-        onBackground: darkNavy,
       ),
       
       // Scaffold

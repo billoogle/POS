@@ -13,7 +13,7 @@ import 'barcode_scanner_screen.dart';
 class AddEditProductScreen extends StatefulWidget {
   final Product? product;
 
-  const AddEditProductScreen({Key? key, this.product}) : super(key: key);
+  const AddEditProductScreen({super.key, this.product});
 
   @override
   State<AddEditProductScreen> createState() => _AddEditProductScreenState();
@@ -290,7 +290,7 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
 
               // Category Dropdown
               DropdownButtonFormField<Category>(
-                value: _selectedCategory,
+                initialValue: _selectedCategory,
                 decoration: InputDecoration(
                   labelText: 'Category *',
                   prefixIcon: _buildIconContainer(

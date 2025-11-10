@@ -6,7 +6,7 @@ import '../../services/auth_service.dart';
 import '../../services/sale_pdf_service.dart';
 
 class SalesHistoryScreen extends StatefulWidget {
-  const SalesHistoryScreen({Key? key}) : super(key: key);
+  const SalesHistoryScreen({super.key});
 
   @override
   State<SalesHistoryScreen> createState() => _SalesHistoryScreenState();
@@ -613,7 +613,7 @@ class _SaleDetailsDialog extends StatelessWidget {
                           ],
                         ),
                       );
-                    }).toList(),
+                    }),
 
                     const Divider(height: 24),
 

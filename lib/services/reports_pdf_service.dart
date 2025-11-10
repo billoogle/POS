@@ -75,7 +75,7 @@ class ReportsPdfService {
               _buildTableCell('Rs. ${product['amount']}'),
             ],
           );
-        }).toList(),
+        }),
       ],
     );
   }
@@ -151,7 +151,7 @@ class ReportsPdfService {
               _buildTableCell('Rs. ${vendor['amount']}'),
             ],
           );
-        }).toList(),
+        }),
       ],
     );
   }
@@ -296,7 +296,7 @@ class ReportsPdfService {
               ),
             ],
           );
-        }).toList(),
+        }),
       ],
     );
   }
@@ -375,7 +375,7 @@ class ReportsPdfService {
               _buildTableCell('${percentage.toStringAsFixed(1)}%'),
             ],
           );
-        }).toList(),
+        }),
       ],
     );
   }

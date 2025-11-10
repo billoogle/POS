@@ -10,7 +10,7 @@ import '../../services/grn_service.dart';
 import '../products/barcode_scanner_screen.dart';
 
 class CreateGRNScreen extends StatefulWidget {
-  const CreateGRNScreen({Key? key}) : super(key: key);
+  const CreateGRNScreen({super.key});
 
   @override
   State<CreateGRNScreen> createState() => _CreateGRNScreenState();
@@ -273,7 +273,7 @@ class _CreateGRNScreenState extends State<CreateGRNScreen> {
             padding: const EdgeInsets.all(16),
             color: Colors.white,
             child: DropdownButtonFormField<Vendor>(
-              value: _selectedVendor,
+              initialValue: _selectedVendor,
               decoration: const InputDecoration(
                 labelText: 'Select Vendor',
                 border: OutlineInputBorder(),

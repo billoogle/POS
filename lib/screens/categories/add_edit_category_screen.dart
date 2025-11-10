@@ -7,7 +7,7 @@ import '../../services/category_service.dart';
 class AddEditCategoryScreen extends StatefulWidget {
   final Category? category;
 
-  const AddEditCategoryScreen({Key? key, this.category}) : super(key: key);
+  const AddEditCategoryScreen({super.key, this.category});
 
   @override
   State<AddEditCategoryScreen> createState() => _AddEditCategoryScreenState();

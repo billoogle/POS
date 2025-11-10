@@ -7,7 +7,7 @@ import '../products/barcode_scanner_screen.dart';
 import 'product_detail_screen.dart';
 
 class ProductFinderScreen extends StatefulWidget {
-  const ProductFinderScreen({Key? key}) : super(key: key);
+  const ProductFinderScreen({super.key});
 
   @override
   State<ProductFinderScreen> createState() => _ProductFinderScreenState();

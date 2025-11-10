@@ -7,7 +7,7 @@ import '../../services/pdf_service.dart';
 import 'create_grn_screen.dart';
 
 class GRNListScreen extends StatefulWidget {
-  const GRNListScreen({Key? key}) : super(key: key);
+  const GRNListScreen({super.key});
 
   @override
   State<GRNListScreen> createState() => _GRNListScreenState();

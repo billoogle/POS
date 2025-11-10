@@ -142,7 +142,7 @@ class SalePdfService {
               ),
             ],
           );
-        }).toList(),
+        }),
       ],
     );
   }

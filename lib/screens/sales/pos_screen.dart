@@ -9,7 +9,7 @@ import '../../services/sale_pdf_service.dart';
 import '../products/barcode_scanner_screen.dart';
 
 class POSScreen extends StatefulWidget {
-  const POSScreen({Key? key}) : super(key: key);
+  const POSScreen({super.key});
 
   @override
   State<POSScreen> createState() => _POSScreenState();
@@ -27,7 +27,7 @@ class _POSScreenState extends State<POSScreen> {
   List<Product> _filteredProducts = [];
   final List<CartItem> _cartItems = [];
 
-  String _paymentMethod = 'Cash';
+  final String _paymentMethod = 'Cash';
   bool _isLoading = false;
   String _businessName = '';
 

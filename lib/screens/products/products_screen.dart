@@ -6,7 +6,7 @@ import '../../services/product_service.dart';
 import 'add_edit_product_screen.dart';
 
 class ProductsScreen extends StatefulWidget {
-  const ProductsScreen({Key? key}) : super(key: key);
+  const ProductsScreen({super.key});
 
   @override
   State<ProductsScreen> createState() => _ProductsScreenState();

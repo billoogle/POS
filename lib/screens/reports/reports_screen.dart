@@ -6,7 +6,7 @@ import 'profit_loss_report_screen.dart';
 import 'category_report_screen.dart';
 
 class ReportsScreen extends StatefulWidget {
-  const ReportsScreen({Key? key}) : super(key: key);
+  const ReportsScreen({super.key});
 
   @override
   State<ReportsScreen> createState() => _ReportsScreenState();

@@ -187,7 +187,7 @@ class PDFService {
               _buildTableCell('Rs. ${item.totalAmount.toStringAsFixed(0)}', align: pw.TextAlign.right),
             ],
           );
-        }).toList(),
+        }),
       ],
     );
   }

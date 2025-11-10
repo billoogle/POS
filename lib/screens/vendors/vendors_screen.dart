@@ -4,7 +4,7 @@ import '../../services/vendor_service.dart';
 import 'add_edit_vendor_screen.dart';
 
 class VendorsScreen extends StatefulWidget {
-  const VendorsScreen({Key? key}) : super(key: key);
+  const VendorsScreen({super.key});
 
   @override
   State<VendorsScreen> createState() => _VendorsScreenState();
