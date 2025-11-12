@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:pos/helpers/currency_manager.dart';
 import '../../models/sale_model.dart';
 import '../../services/auth_service.dart';
 import '../../services/reports_pdf_service.dart';
@@ -236,7 +237,7 @@ class _CategoryReportScreenState extends State<CategoryReportScreen> {
                     Expanded(
                       child: _buildSummaryCard(
                         'Revenue',
-                        'Rs. ${_totalRevenue.toStringAsFixed(0)}',
+                        CurrencyManager.format(_totalRevenue),
                         Icons.attach_money,
                         Colors.green,
                       ),
@@ -343,7 +344,7 @@ class _CategoryReportScreenState extends State<CategoryReportScreen> {
                                             const SizedBox(width: 8),
                                             Expanded(
                                               child: _buildInfoChip(
-                                                'Rs. ${category.totalRevenue.toStringAsFixed(0)}',
+                                                CurrencyManager.format(category.totalRevenue),
                                                 Icons.attach_money,
                                                 Colors.green,
                                               ),

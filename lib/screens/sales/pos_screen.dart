@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:pos/helpers/currency_manager.dart';
 import '../../models/product_model.dart';
 import '../../models/sale_model.dart';
 import '../../services/product_service.dart';
@@ -21,7 +22,9 @@ class _POSScreenState extends State<POSScreen> {
   final SalePdfService _pdfService = SalePdfService();
   final AuthService _authService = AuthService();
   final TextEditingController _searchController = TextEditingController();
-  final TextEditingController _discountController = TextEditingController(text: '0');
+  final TextEditingController _discountController = TextEditingController(
+    text: '0',
+  );
 
   List<Product> _allProducts = [];
   List<Product> _filteredProducts = [];
@@ -78,18 +81,24 @@ class _POSScreenState extends State<POSScreen> {
   Future<void> _scanBarcode() async {
     final barcode = await Navigator.push<String>(
       context,
-      MaterialPageRoute(
-        builder: (context) => const BarcodeScannerScreen(),
-      ),
+      MaterialPageRoute(builder: (context) => const BarcodeScannerScreen()),
     );
 
     if (barcode != null) {
       final product = _allProducts.firstWhere(
         (p) => p.barcode == barcode,
         orElse: () => Product(
-          id: '', name: '', imageUrl: '', barcode: '', purchasePrice: 0,
-          salePrice: 0, stock: 0, categoryId: '', categoryName: '',
-          createdAt: DateTime.now(), userId: '',
+          id: '',
+          name: '',
+          imageUrl: '',
+          barcode: '',
+          purchasePrice: 0,
+          salePrice: 0,
+          stock: 0,
+          categoryId: '',
+          categoryName: '',
+          createdAt: DateTime.now(),
+          userId: '',
         ),
       );
 
@@ -117,7 +126,9 @@ class _POSScreenState extends State<POSScreen> {
       return;
     }
     setState(() {
-      final existingIndex = _cartItems.indexWhere((item) => item.product.id == product.id);
+      final existingIndex = _cartItems.indexWhere(
+        (item) => item.product.id == product.id,
+      );
       if (existingIndex != -1) {
         final newQuantity = _cartItems[existingIndex].quantity + 1;
         if (newQuantity <= product.stock) {
@@ -158,32 +169,47 @@ class _POSScreenState extends State<POSScreen> {
   // (This function is no longer needed as delete icon is removed)
   // void _removeFromCart(int index) { ... }
 
-  double get _subtotal => _cartItems.fold(0.0, (sum, item) => sum + (item.product.salePrice * item.quantity));
+  double get _subtotal => _cartItems.fold(
+    0.0,
+    (sum, item) => sum + (item.product.salePrice * item.quantity),
+  );
   double get _discount => double.tryParse(_discountController.text) ?? 0;
   double get _total => _subtotal - _discount;
 
   Future<void> _completeSale() async {
     if (_cartItems.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Cart is empty!'), backgroundColor: Colors.red));
+        const SnackBar(
+          content: Text('Cart is empty!'),
+          backgroundColor: Colors.red,
+        ),
+      );
       return;
     }
     if (_total < 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Discount cannot be more than subtotal!'), backgroundColor: Colors.red));
+        const SnackBar(
+          content: Text('Discount cannot be more than subtotal!'),
+          backgroundColor: Colors.red,
+        ),
+      );
       return;
     }
 
     setState(() => _isLoading = true);
 
-    final saleItems = _cartItems.map((cartItem) => SaleItem(
-      productId: cartItem.product.id,
-      productName: cartItem.product.name,
-      productImage: cartItem.product.imageUrl,
-      quantity: cartItem.quantity,
-      salePrice: cartItem.product.salePrice,
-      totalAmount: cartItem.product.salePrice * cartItem.quantity,
-    )).toList();
+    final saleItems = _cartItems
+        .map(
+          (cartItem) => SaleItem(
+            productId: cartItem.product.id,
+            productName: cartItem.product.name,
+            productImage: cartItem.product.imageUrl,
+            quantity: cartItem.quantity,
+            salePrice: cartItem.product.salePrice,
+            totalAmount: cartItem.product.salePrice * cartItem.quantity,
+          ),
+        )
+        .toList();
 
     final result = await _saleService.createSale(
       items: saleItems,
@@ -206,7 +232,8 @@ class _POSScreenState extends State<POSScreen> {
       });
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(result['message']), backgroundColor: Colors.red));
+        SnackBar(content: Text(result['message']), backgroundColor: Colors.red),
+      );
     }
   }
 
@@ -216,26 +243,44 @@ class _POSScreenState extends State<POSScreen> {
       barrierDismissible: false,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Row(children: [
-          Icon(Icons.check_circle, color: Colors.green, size: 32),
-          SizedBox(width: 12),
-          Text('Sale Complete!'),
-        ]),
+        title: const Row(
+          children: [
+            Icon(Icons.check_circle, color: Colors.green, size: 32),
+            SizedBox(width: 12),
+            Text('Sale Complete!'),
+          ],
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Invoice: ${sale.invoiceNumber}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            Text(
+              'Invoice: ${sale.invoiceNumber}',
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 8),
             Text('Items: ${sale.itemsCount}'),
-            Text('Total: Rs. ${sale.totalAmount.toStringAsFixed(0)}'),
+            Text('Total: ${CurrencyManager.format(sale.totalAmount)}'),
             Text('Payment: ${sale.paymentMethod}'),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Close')),
-          ElevatedButton.icon(onPressed: () async => await _pdfService.printInvoice(sale, _businessName), icon: const Icon(Icons.print), label: const Text('Print')),
-          ElevatedButton.icon(onPressed: () async => await _pdfService.shareInvoice(sale, _businessName), icon: const Icon(Icons.share), label: const Text('Share')),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+          ElevatedButton.icon(
+            onPressed: () async =>
+                await _pdfService.printInvoice(sale, _businessName),
+            icon: const Icon(Icons.print),
+            label: const Text('Print'),
+          ),
+          ElevatedButton.icon(
+            onPressed: () async =>
+                await _pdfService.shareInvoice(sale, _businessName),
+            icon: const Icon(Icons.share),
+            label: const Text('Share'),
+          ),
         ],
       ),
     );
@@ -249,9 +294,16 @@ class _POSScreenState extends State<POSScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Color(0xFF0F172A)),
-            onPressed: () => Navigator.pop(context)),
-        title: const Text('POS System', style: TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.w600)),
+          icon: const Icon(Icons.arrow_back, color: Color(0xFF0F172A)),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: const Text(
+          'POS System',
+          style: TextStyle(
+            color: Color(0xFF0F172A),
+            fontWeight: FontWeight.w600,
+          ),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.qr_code_scanner, color: Color(0xFF0F172A)),
@@ -260,8 +312,9 @@ class _POSScreenState extends State<POSScreen> {
           ),
         ],
         bottom: PreferredSize(
-            preferredSize: const Size.fromHeight(1),
-            child: Container(color: const Color(0xFFE2E8F0), height: 1)),
+          preferredSize: const Size.fromHeight(1),
+          child: Container(color: const Color(0xFFE2E8F0), height: 1),
+        ),
       ),
       body: Row(
         children: [
@@ -282,9 +335,13 @@ class _POSScreenState extends State<POSScreen> {
                       filled: true,
                       fillColor: const Color(0xFFF8FAFC),
                       border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide.none),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
                     ),
                   ),
                 ),
@@ -316,13 +373,28 @@ class _POSScreenState extends State<POSScreen> {
                     children: [
                       const Icon(Icons.shopping_cart),
                       const SizedBox(width: 8),
-                      const Text('Cart', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                      const Text(
+                        'Cart',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                       const SizedBox(width: 4),
-                      Text('(${_cartItems.length})', style: const TextStyle(fontSize: 18, color: Colors.grey)),
+                      Text(
+                        '(${_cartItems.length})',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          color: Colors.grey,
+                        ),
+                      ),
                       const Spacer(),
                       if (_cartItems.isNotEmpty)
                         IconButton(
-                          icon: const Icon(Icons.delete_sweep, color: Colors.red),
+                          icon: const Icon(
+                            Icons.delete_sweep,
+                            color: Colors.red,
+                          ),
                           onPressed: () => setState(() => _cartItems.clear()),
                           tooltip: 'Clear All',
                         ),
@@ -335,14 +407,27 @@ class _POSScreenState extends State<POSScreen> {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.shopping_cart_outlined, size: 64, color: Colors.grey[300]),
+                              Icon(
+                                Icons.shopping_cart_outlined,
+                                size: 64,
+                                color: Colors.grey[300],
+                              ),
                               const SizedBox(height: 16),
-                              Text('Cart is empty', style: TextStyle(fontSize: 16, color: Colors.grey[600])),
+                              Text(
+                                'Cart is empty',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
                             ],
                           ),
                         )
                       : ListView.builder(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
                           itemCount: _cartItems.length,
                           itemBuilder: (context, index) {
                             return _buildCartItem(index);
@@ -366,7 +451,7 @@ class _POSScreenState extends State<POSScreen> {
       elevation: 0.5,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.grey.shade200)
+        side: BorderSide(color: Colors.grey.shade200),
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -382,7 +467,7 @@ class _POSScreenState extends State<POSScreen> {
           style: TextStyle(color: isOutOfStock ? Colors.red : stockColor),
         ),
         trailing: Text(
-          'Rs. ${product.salePrice.toStringAsFixed(0)}',
+          CurrencyManager.format(product.salePrice),
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
@@ -403,7 +488,7 @@ class _POSScreenState extends State<POSScreen> {
       elevation: 0.5,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.grey.shade200)
+        side: BorderSide(color: Colors.grey.shade200),
       ),
       child: Padding(
         padding: const EdgeInsets.all(12.0),
@@ -418,15 +503,23 @@ class _POSScreenState extends State<POSScreen> {
                 Expanded(
                   child: Text(
                     product.name,
-                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'Rs. ${(product.salePrice * cartItem.quantity).toStringAsFixed(0)}',
-                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF10B981)),
+                  ' ${CurrencyManager.format(product.salePrice * cartItem.quantity)}',
+
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF10B981),
+                  ),
                 ),
               ],
             ),
@@ -439,21 +532,37 @@ class _POSScreenState extends State<POSScreen> {
                   width: 40,
                   child: OutlinedButton(
                     onPressed: () => _updateQuantity(index, -1),
-                    style: OutlinedButton.styleFrom(padding: EdgeInsets.zero, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+                    style: OutlinedButton.styleFrom(
+                      padding: EdgeInsets.zero,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
                     child: const Icon(Icons.remove, size: 16),
                   ),
                 ),
                 Container(
                   width: 45,
                   alignment: Alignment.center,
-                  child: Text('${cartItem.quantity}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  child: Text(
+                    '${cartItem.quantity}',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
                 SizedBox(
                   height: 32,
                   width: 40,
                   child: OutlinedButton(
                     onPressed: () => _updateQuantity(index, 1),
-                    style: OutlinedButton.styleFrom(padding: EdgeInsets.zero, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+                    style: OutlinedButton.styleFrom(
+                      padding: EdgeInsets.zero,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
                     child: const Icon(Icons.add, size: 16),
                   ),
                 ),
@@ -479,14 +588,26 @@ class _POSScreenState extends State<POSScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Subtotal:', style: TextStyle(fontSize: 14, color: Colors.grey.shade700)),
-              Text('Rs. ${_subtotal.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+              Text(
+                'Subtotal:',
+                style: TextStyle(fontSize: 14, color: Colors.grey.shade700),
+              ),
+              Text(
+                ' ${CurrencyManager.format(_subtotal)}',
+                style: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 8),
           Row(
             children: [
-              Text('Discount:', style: TextStyle(fontSize: 14, color: Colors.grey.shade700)),
+              Text(
+                'Discount:',
+                style: TextStyle(fontSize: 14, color: Colors.grey.shade700),
+              ),
               const SizedBox(width: 8),
               Expanded(
                 child: SizedBox(
@@ -496,11 +617,17 @@ class _POSScreenState extends State<POSScreen> {
                     keyboardType: TextInputType.number,
                     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                     decoration: InputDecoration(
-                        prefixText: 'Rs. ',
-                        filled: true,
-                        fillColor: const Color(0xFFF8FAFC),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 12)),
+                      prefixText: CurrencyManager.format(0),
+                      filled: true,
+                      fillColor: const Color(0xFFF8FAFC),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide.none,
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                      ),
+                    ),
                     onChanged: (value) => setState(() {}),
                   ),
                 ),
@@ -511,10 +638,17 @@ class _POSScreenState extends State<POSScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Total:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const Text(
+                'Total:',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
               Text(
-                'Rs. ${_total.toStringAsFixed(0)}',
-                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFFF59E0B)),
+                CurrencyManager.format(_total),
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFFF59E0B),
+                ),
                 overflow: TextOverflow.ellipsis,
               ),
             ],
@@ -525,16 +659,29 @@ class _POSScreenState extends State<POSScreen> {
             child: ElevatedButton(
               onPressed: _isLoading ? null : _completeSale,
               style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF10B981),
-                  // ======= FIX: Reduced vertical padding to fix text cut-off =======
-                  padding: const EdgeInsets.symmetric(vertical: 14), 
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                backgroundColor: const Color(0xFF10B981),
+                // ======= FIX: Reduced vertical padding to fix text cut-off =======
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
               child: _isLoading
                   ? const SizedBox(
                       height: 24,
                       width: 24,
-                      child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(Colors.white)))
-                  : const Text('Complete Sale', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : const Text(
+                      'Complete Sale',
+                      style: TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
             ),
           ),
         ],

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:pos/helpers/currency_manager.dart';
 import '../../models/sale_model.dart';
 import '../../services/auth_service.dart';
 import '../../services/reports_pdf_service.dart';
@@ -216,7 +217,7 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
                     Expanded(
                       child: _buildSummaryCard(
                         'Revenue',
-                        'Rs. ${_totalRevenue.toStringAsFixed(0)}',
+                        CurrencyManager.format(_totalRevenue),
                         Icons.attach_money,
                         Colors.green,
                       ),
@@ -262,36 +263,35 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
     );
   }
 
-  Widget _buildSummaryCard(String label, String value, IconData icon, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        children: [
-          Icon(icon, color: color, size: 24),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
+    Widget _buildSummaryCard(String label, String value, IconData icon, Color color) {
+  // Value already formatted from caller, no changes needed
+  return Container(
+    padding: const EdgeInsets.all(12),
+    decoration: BoxDecoration(
+      color: color.withOpacity(0.1),
+      borderRadius: BorderRadius.circular(12),
+    ),
+    child: Column(
+      children: [
+        Icon(icon, color: color, size: 24),
+        const SizedBox(height: 8),
+        Text(
+          value, // Already formatted
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: color,
           ),
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 10,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
-  }
+        ),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 10),
+          textAlign: TextAlign.center,
+        ),
+      ],
+    ),
+  );
+}
 
   Widget _buildProductList() {
     final sortedItems = _itemSummary.entries.toList()
@@ -323,7 +323,7 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
             ),
             subtitle: Text('Quantity: ${item.quantity}'),
             trailing: Text(
-              'Rs. ${item.totalAmount.toStringAsFixed(0)}',
+              CurrencyManager.format(_totalRevenue),
               style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
@@ -364,7 +364,7 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
             ),
             isThreeLine: true,
             trailing: Text(
-              'Rs. ${sale.totalAmount.toStringAsFixed(0)}',
+              CurrencyManager.format(_totalRevenue),
               style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,

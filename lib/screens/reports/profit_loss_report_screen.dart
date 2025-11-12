@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:pos/helpers/currency_manager.dart';
 import '../../models/sale_model.dart';
 import '../../models/grn_model.dart';
 import '../../services/auth_service.dart';
@@ -245,7 +246,7 @@ class _ProfitLossReportScreenState extends State<ProfitLossReportScreen> {
                     Expanded(
                       child: _buildSummaryCard(
                         'Revenue',
-                        'Rs. ${_totalRevenue.toStringAsFixed(0)}',
+                        CurrencyManager.format(_totalRevenue),
                         Icons.attach_money,
                         Colors.blue,
                       ),
@@ -254,7 +255,7 @@ class _ProfitLossReportScreenState extends State<ProfitLossReportScreen> {
                     Expanded(
                       child: _buildSummaryCard(
                         'Cost',
-                        'Rs. ${_totalCost.toStringAsFixed(0)}',
+                        CurrencyManager.format(_totalCost),
                         Icons.shopping_cart,
                         Colors.orange,
                       ),
@@ -267,7 +268,7 @@ class _ProfitLossReportScreenState extends State<ProfitLossReportScreen> {
                     Expanded(
                       child: _buildSummaryCard(
                         'Profit',
-                        'Rs. ${_totalProfit.toStringAsFixed(0)}',
+                        CurrencyManager.format(_totalProfit),
                         Icons.trending_up,
                         _totalProfit >= 0 ? Colors.green : Colors.red,
                       ),
@@ -335,7 +336,7 @@ class _ProfitLossReportScreenState extends State<ProfitLossReportScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.end,
                                 children: [
                                   Text(
-                                    'Rs. ${product.totalProfit.toStringAsFixed(0)}',
+                                    CurrencyManager.format(product.totalProfit),
                                     style: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,
@@ -362,19 +363,20 @@ class _ProfitLossReportScreenState extends State<ProfitLossReportScreen> {
                                     children: [
                                       _buildDetailRow(
                                         'Revenue',
-                                        'Rs. ${product.totalRevenue.toStringAsFixed(0)}',
+                                        
+                                        CurrencyManager.format(product.totalRevenue),
                                         Colors.blue,
                                       ),
                                       const SizedBox(height: 8),
                                       _buildDetailRow(
                                         'Cost',
-                                        'Rs. ${product.totalCost.toStringAsFixed(0)}',
+                                        CurrencyManager.format(product.totalCost),
                                         Colors.orange,
                                       ),
                                       const Divider(height: 24),
                                       _buildDetailRow(
                                         'Profit',
-                                        'Rs. ${product.totalProfit.toStringAsFixed(0)}',
+                                        CurrencyManager.format(product.totalProfit),
                                         product.totalProfit >= 0
                                             ? Colors.green
                                             : Colors.red,

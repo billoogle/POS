@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../theme/app_theme.dart';
 import '../../services/auth_service.dart';
+import '../../helpers/currency_manager.dart';
 
 class SettingsScreen extends StatefulWidget {
-  const SettingsScreen({super.key});
+  const SettingsScreen({Key? key}) : super(key: key);
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
@@ -123,6 +124,105 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _showSnackbar(result['message'], result['success']);
   }
 
+  // === NEW: Currency Selection Dialog ===
+  void _showCurrencySelector() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppTheme.primaryGold.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(
+                Icons.attach_money_rounded,
+                color: AppTheme.primaryGold,
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Text('Select Currency'),
+          ],
+        ),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: ListView.builder(
+            shrinkWrap: true,
+            itemCount: CurrencyManager.currencies.length,
+            itemBuilder: (context, index) {
+              final entry = CurrencyManager.currencies.entries.elementAt(index);
+              final symbol = entry.key;
+              final name = entry.value;
+              final isSelected = CurrencyManager.currentCurrency == symbol;
+
+              return ListTile(
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 4,
+                ),
+                leading: Container(
+                  width: 50,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? AppTheme.primaryGold.withOpacity(0.2)
+                        : AppTheme.lightGray,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isSelected
+                          ? AppTheme.primaryGold
+                          : Colors.transparent,
+                      width: 2,
+                    ),
+                  ),
+                  child: Center(
+                    child: Text(
+                      symbol,
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: isSelected
+                            ? AppTheme.primaryGold
+                            : AppTheme.darkGray,
+                      ),
+                    ),
+                  ),
+                ),
+                title: Text(
+                  name,
+                  style: TextStyle(
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    color: isSelected ? AppTheme.primaryGold : AppTheme.darkNavy,
+                  ),
+                ),
+                trailing: isSelected
+                    ? const Icon(
+                        Icons.check_circle_rounded,
+                        color: AppTheme.primaryGold,
+                      )
+                    : null,
+                onTap: () async {
+                  await CurrencyManager.setCurrency(symbol);
+                  setState(() {}); // Refresh UI
+                  Navigator.pop(context);
+                  _showSnackbar(
+                    'Currency changed to $name',
+                    true,
+                  );
+                },
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -159,6 +259,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               padding: const EdgeInsets.all(20),
               child: Column(
                 children: [
+                  // === NEW: Currency Selector Card ===
+                  _buildCurrencyCard(),
+                  const SizedBox(height: 20),
+                  
                   _buildProfileCard(),
                   const SizedBox(height: 20),
                   _buildEmailCard(),
@@ -167,6 +271,137 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ],
               ),
             ),
+    );
+  }
+
+  // === NEW: Currency Card ===
+  Widget _buildCurrencyCard() {
+    return ValueListenableBuilder<String>(
+      valueListenable: CurrencyManager.currencySymbol,
+      builder: (context, currentCurrency, child) {
+        return Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            gradient: AppTheme.goldGradient,
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: AppTheme.primaryGold.withOpacity(0.3),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Icons.attach_money_rounded,
+                      color: Colors.white,
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  const Text(
+                    'Currency Settings',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              
+              // Current Currency Display
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 60,
+                      height: 60,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.3),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Center(
+                        child: Text(
+                          currentCurrency,
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Current Currency',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.white70,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            CurrencyManager.currentCurrencyName,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              
+              // Change Button
+              ElevatedButton.icon(
+                onPressed: _showCurrencySelector,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: AppTheme.primaryGold,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                icon: const Icon(Icons.swap_horiz_rounded),
+                label: const Text(
+                  'Change Currency',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ).animate().fadeIn(duration: 400.ms).scale();
+      },
     );
   }
 
@@ -205,7 +440,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         ],
       ),
-    ).animate().fadeIn(duration: 400.ms).slideX(begin: -0.2);
+    ).animate().fadeIn(duration: 400.ms, delay: 150.ms).slideX(begin: -0.2);
   }
 
   Widget _buildEmailCard() {
@@ -249,7 +484,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         ],
       ),
-    ).animate().fadeIn(duration: 400.ms, delay: 150.ms).slideX(begin: -0.2);
+    ).animate().fadeIn(duration: 400.ms, delay: 300.ms).slideX(begin: -0.2);
   }
 
   Widget _buildPasswordCard() {
@@ -292,7 +527,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         ],
       ),
-    ).animate().fadeIn(duration: 400.ms, delay: 300.ms).slideX(begin: -0.2);
+    ).animate().fadeIn(duration: 400.ms, delay: 450.ms).slideX(begin: -0.2);
   }
 
   Widget _buildSectionHeader(String title, IconData icon, Color color) {

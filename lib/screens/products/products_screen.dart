@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:pos/helpers/currency_manager.dart';
 import '../../theme/app_theme.dart';
 import '../../models/product_model.dart';
 import '../../services/product_service.dart';
@@ -365,7 +366,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                       Row(
                         children: [
                           Text(
-                            'Rs. ${product.salePrice.toStringAsFixed(0)}',
+                            CurrencyManager.format(product.salePrice),
                             style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,

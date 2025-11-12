@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart'; // formatting ke liye
+import 'package:pos/helpers/currency_manager.dart';
 import 'package:pos/screens/products/product_finder_screen.dart';
 import 'package:pos/services/product_service.dart'; // Product service
 import 'package:pos/services/sale_service.dart'; // Sale service
@@ -330,58 +331,58 @@ class _HomeTabState extends State<HomeTab> {
     );
   }
 
-  Widget _buildQuickStats() {
-    final currencyFormat = NumberFormat.compactCurrency(
-      locale: 'en_PK',
-      symbol: 'Rs. ',
-      decimalDigits: 0,
-    );
+  // dashboard_screen.dart - HomeTab Stats Section
+// Replace _buildQuickStats() method:
 
-    return Row(
-      children: [
-        // Today's Sales Stat Card
-        Expanded(
-          child: StreamBuilder<Map<String, dynamic>>(
-            stream: _salesStatsStream,
-            builder: (context, snapshot) {
-              String value = '...';
-              if (snapshot.hasData) {
-                value = currencyFormat.format(snapshot.data?['todayRevenue'] ?? 0);
-              }
-              return _buildStatCard(
-                "Today's Sales",
-                value,
-                Icons.trending_up_rounded,
-                AppTheme.success,
-                0,
-              );
-            },
-          ),
+Widget _buildQuickStats() {
+  return Row(
+    children: [
+      // Today's Sales Stat Card
+      Expanded(
+        child: StreamBuilder<Map<String, dynamic>>(
+          stream: _salesStatsStream,
+          builder: (context, snapshot) {
+            final revenue = snapshot.data?['todayRevenue'] ?? 0.0;
+            
+            // === NEW: Wrap with ValueListenableBuilder ===
+            return ValueListenableBuilder<String>(
+              valueListenable: CurrencyManager.currencySymbol,
+              builder: (context, currency, child) {
+                return _buildStatCard(
+                  "Today's Sales",
+                  CurrencyManager.format(revenue), // Dynamic currency
+                  Icons.trending_up_rounded,
+                  AppTheme.success,
+                  0,
+                );
+              },
+            );
+          },
         ),
-        const SizedBox(width: 12),
-        
-        // Total Products Stat Card
-        Expanded(
-          child: StreamBuilder<int>(
-            stream: _productCountStream,
-            builder: (context, snapshot) {
-              String value = '...';
-              if (snapshot.hasData) {
-                value = snapshot.data?.toString() ?? '0';
-              }
-              return _buildStatCard(
-                'Products',
-                value,
-                Icons.inventory_2_rounded,
-                AppTheme.primaryCyan,
-                100,
-              );
-            },
-          ),
+      ),
+      const SizedBox(width: 12),
+      
+      // Total Products Stat Card (No currency needed)
+      Expanded(
+        child: StreamBuilder<int>(
+          stream: _productCountStream,
+          builder: (context, snapshot) {
+            String value = snapshot.data?.toString() ?? '0';
+            return _buildStatCard(
+              'Products',
+              value,
+              Icons.inventory_2_rounded,
+              AppTheme.primaryCyan,
+              100,
+            );
+          },
         ),
-      ],
-    );
-  }
+      ),
+    ],
+  );
+}
+
+// No changes needed in _buildStatCard() method - it just displays the value
 
   Widget _buildStatCard(String label, String value, IconData icon, Color color, int delay) {
     return Container(

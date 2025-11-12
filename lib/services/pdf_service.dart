@@ -1,3 +1,5 @@
+// pdf_service.dart - Update for dynamic currency:
+
 import 'dart:io';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -5,8 +7,17 @@ import 'package:printing/printing.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:intl/intl.dart';
 import '../models/grn_model.dart';
+import '../helpers/currency_manager.dart'; // Import
 
 class PDFService {
+  // Get current currency symbol
+  String get _currency => CurrencyManager.currentCurrency;
+
+  // Format amount with current currency
+  String _formatAmount(double amount, {int decimals = 0}) {
+    return CurrencyManager.format(amount, decimals: decimals);
+  }
+
   // Generate GRN PDF
   Future<pw.Document> generateGRNPDF(GRN grn, String businessName) async {
     final pdf = pw.Document();
@@ -43,7 +54,7 @@ class PDFService {
     return pdf;
   }
 
-  // Header Section
+  // Header Section (no changes)
   pw.Widget _buildHeader(GRN grn, String businessName) {
     return pw.Row(
       mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
@@ -104,7 +115,7 @@ class PDFService {
     );
   }
 
-  // Vendor Info Section
+  // Vendor Info Section (no changes)
   pw.Widget _buildVendorInfo(GRN grn) {
     return pw.Container(
       padding: const pw.EdgeInsets.all(16),
@@ -160,7 +171,7 @@ class PDFService {
     );
   }
 
-  // Items Table
+  // Items Table - UPDATED with dynamic currency
   pw.Widget _buildItemsTable(GRN grn) {
     return pw.Table(
       border: pw.TableBorder.all(color: PdfColors.grey300),
@@ -176,18 +187,18 @@ class PDFService {
             _buildTableCell('Total', isHeader: true, align: pw.TextAlign.right),
           ],
         ),
-        // Data Rows
+        // Data Rows - UPDATED
         ...grn.items.map((item) {
           return pw.TableRow(
             children: [
               _buildTableCell(item.productName),
               _buildTableCell(item.quantity.toString(), align: pw.TextAlign.center),
-              _buildTableCell('Rs. ${item.purchasePrice.toStringAsFixed(0)}', align: pw.TextAlign.right),
-              _buildTableCell('Rs. ${item.salePrice.toStringAsFixed(0)}', align: pw.TextAlign.right),
-              _buildTableCell('Rs. ${item.totalAmount.toStringAsFixed(0)}', align: pw.TextAlign.right),
+              _buildTableCell(_formatAmount(item.purchasePrice), align: pw.TextAlign.right), // Dynamic
+              _buildTableCell(_formatAmount(item.salePrice), align: pw.TextAlign.right), // Dynamic
+              _buildTableCell(_formatAmount(item.totalAmount), align: pw.TextAlign.right), // Dynamic
             ],
           );
-        }),
+        }).toList(),
       ],
     );
   }
@@ -211,7 +222,7 @@ class PDFService {
     );
   }
 
-  // Total Section
+  // Total Section - UPDATED with dynamic currency
   pw.Widget _buildTotal(GRN grn) {
     return pw.Container(
       alignment: pw.Alignment.centerRight,
@@ -265,7 +276,7 @@ class PDFService {
                   ),
                 ),
                 pw.Text(
-                  'Rs. ${grn.totalAmount.toStringAsFixed(0)}',
+                  _formatAmount(grn.totalAmount), // Dynamic
                   style: pw.TextStyle(
                     fontSize: 18,
                     fontWeight: pw.FontWeight.bold,
@@ -280,7 +291,7 @@ class PDFService {
     );
   }
 
-  // Footer
+  // Footer (no changes)
   pw.Widget _buildFooter() {
     return pw.Column(
       children: [

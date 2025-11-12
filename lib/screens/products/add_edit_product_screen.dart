@@ -9,6 +9,8 @@ import '../../services/product_service.dart';
 import '../../services/category_service.dart';
 import '../../services/image_service.dart';
 import 'barcode_scanner_screen.dart';
+import '../../helpers/currency_manager.dart';
+
 
 class AddEditProductScreen extends StatefulWidget {
   final Product? product;
@@ -365,55 +367,64 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
               const SizedBox(height: 16),
 
               // Purchase Price
-              TextFormField(
-                controller: _purchasePriceController,
-                keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                decoration: InputDecoration(
-                  labelText: 'Purchase Price *',
-                  hintText: '0',
-                  prefixIcon: _buildIconContainer(
-                    Icons.monetization_on_outlined,
-                    AppTheme.warning,
-                  ),
-                  prefixText: 'Rs. ',
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter purchase price';
-                  }
-                  return null;
-                },
-              ).animate().fadeIn(duration: 400.ms, delay: 400.ms).slideX(begin: -0.2),
-              const SizedBox(height: 16),
+              ValueListenableBuilder<String>(
+  valueListenable: CurrencyManager.currencySymbol,
+  builder: (context, currency, child) {
+    return TextFormField(
+      controller: _purchasePriceController,
+      keyboardType: TextInputType.number,
+      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+      decoration: InputDecoration(
+        labelText: 'Purchase Price *',
+        hintText: '0',
+        prefixIcon: _buildIconContainer(
+          Icons.monetization_on_outlined,
+          AppTheme.warning,
+        ),
+        prefixText: '$currency ', // Dynamic prefix
+      ),
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Please enter purchase price';
+        }
+        return null;
+      },
+    ).animate().fadeIn(duration: 400.ms, delay: 400.ms).slideX(begin: -0.2);
+  },
+),
+const SizedBox(height: 16),
 
               // Sale Price
-              TextFormField(
-                controller: _salePriceController,
-                keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                decoration: InputDecoration(
-                  labelText: 'Sale Price *',
-                  hintText: '0',
-                  prefixIcon: _buildIconContainer(
-                    Icons.payments_outlined,
-                    AppTheme.success,
-                  ),
-                  prefixText: 'Rs. ',
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter sale price';
-                  }
-                  if (int.tryParse(value) != null && 
-                      _purchasePriceController.text.isNotEmpty &&
-                      int.parse(value) < int.parse(_purchasePriceController.text)) {
-                    return 'Sale price should be greater than purchase price';
-                  }
-                  return null;
-                },
-              ).animate().fadeIn(duration: 400.ms, delay: 500.ms).slideX(begin: -0.2),
-              const SizedBox(height: 16),
+              ValueListenableBuilder<String>(
+  valueListenable: CurrencyManager.currencySymbol,
+  builder: (context, currency, child) {
+    return TextFormField(
+      controller: _salePriceController,
+      keyboardType: TextInputType.number,
+      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+      decoration: InputDecoration(
+        labelText: 'Sale Price *',
+        hintText: '0',
+        prefixIcon: _buildIconContainer(
+          Icons.payments_outlined,
+          AppTheme.success,
+        ),
+        prefixText: '$currency ', // Dynamic prefix
+      ),
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Please enter sale price';
+        }
+        if (int.tryParse(value) != null && 
+            _purchasePriceController.text.isNotEmpty &&
+            int.parse(value) < int.parse(_purchasePriceController.text)) {
+          return 'Sale price should be greater than purchase price';
+        }
+        return null;
+      },
+    ).animate().fadeIn(duration: 400.ms, delay: 500.ms).slideX(begin: -0.2);
+  },
+),
 
               // Stock
               TextFormField(

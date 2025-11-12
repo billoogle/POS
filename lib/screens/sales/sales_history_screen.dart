@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:pos/helpers/currency_manager.dart';
 import '../../models/sale_model.dart';
 import '../../services/sale_service.dart';
 import '../../services/auth_service.dart';
@@ -191,7 +192,7 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen> {
                           ),
                           _buildSummaryItem(
                             'Revenue',
-                            'Rs. ${totalRevenue.toStringAsFixed(0)}',
+                            CurrencyManager.format(totalRevenue),
                             Icons.attach_money,
                           ),
                         ],
@@ -387,7 +388,7 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen> {
                   children: [
                     if (sale.discount > 0) ...[
                       Text(
-                        'Rs. ${sale.subtotal.toStringAsFixed(0)}',
+                        CurrencyManager.format(sale.subtotal),
                         style: const TextStyle(
                           fontSize: 12,
                           color: Color(0xFF94A3B8),
@@ -396,7 +397,7 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen> {
                       ),
                     ],
                     Text(
-                      'Rs. ${sale.totalAmount.toStringAsFixed(0)}',
+                      CurrencyManager.format(sale.totalAmount),
                       style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -593,7 +594,7 @@ class _SaleDetailsDialog extends StatelessWidget {
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    '${item.quantity} × Rs. ${item.salePrice.toStringAsFixed(0)}',
+                                    '${item.quantity} ×  ${CurrencyManager.format(item.salePrice)}',
                                     style: const TextStyle(
                                       fontSize: 12,
                                       color: Color(0xFF64748B),
@@ -603,7 +604,7 @@ class _SaleDetailsDialog extends StatelessWidget {
                               ),
                             ),
                             Text(
-                              'Rs. ${item.totalAmount.toStringAsFixed(0)}',
+                              CurrencyManager.format(item.totalAmount),
                               style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
@@ -636,7 +637,7 @@ class _SaleDetailsDialog extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          'Rs. ${sale.totalAmount.toStringAsFixed(0)}',
+                          CurrencyManager.format(sale.totalAmount),
                           style: const TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
@@ -695,7 +696,7 @@ class _SaleDetailsDialog extends StatelessWidget {
           style: const TextStyle(fontSize: 14),
         ),
         Text(
-          'Rs. ${amount.abs().toStringAsFixed(0)}',
+          CurrencyManager.format(amount.abs()),
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,

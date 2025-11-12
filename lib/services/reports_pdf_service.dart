@@ -1,9 +1,18 @@
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
+import 'package:pos/helpers/currency_manager.dart';
 import 'package:printing/printing.dart';
 import 'package:intl/intl.dart';
 
 class ReportsPdfService {
+  // Get current currency symbol
+  String get _currency => CurrencyManager.currentCurrency;
+
+  // Format amount with current currency
+  String _formatAmount(double amount, {int decimals = 0}) {
+    return CurrencyManager.format(amount, decimals: decimals);
+  }
+
   // ==================== SALES REPORT ====================
   Future<void> generateSalesReport({
     required String businessName,
@@ -33,7 +42,7 @@ class ReportsPdfService {
           _buildSummarySection([
             {'label': 'Total Sales', 'value': '$totalSales'},
             {'label': 'Items Sold', 'value': '$totalItems'},
-            {'label': 'Total Revenue', 'value': 'Rs. ${totalRevenue.toStringAsFixed(0)}'},
+            {'label': 'Total Revenue', 'value': _formatAmount(totalRevenue)}, // Dynamic
           ]),
           pw.SizedBox(height: 20),
 
@@ -67,15 +76,17 @@ class ReportsPdfService {
         ...products.asMap().entries.map((entry) {
           final index = entry.key;
           final product = entry.value;
+          // Parse amount safely
+          final amount = double.tryParse(product['amount']?.toString() ?? '0') ?? 0.0;
           return pw.TableRow(
             children: [
               _buildTableCell('${index + 1}'),
               _buildTableCell('${product['name']}', align: pw.TextAlign.left),
               _buildTableCell('${product['quantity']}'),
-              _buildTableCell('Rs. ${product['amount']}'),
+              _buildTableCell(_formatAmount(amount)), // Dynamic
             ],
           );
-        }),
+        }).toList(),
       ],
     );
   }
@@ -109,7 +120,7 @@ class ReportsPdfService {
           _buildSummarySection([
             {'label': 'Total GRNs', 'value': '$totalGRNs'},
             {'label': 'Items Purchased', 'value': '$totalItems'},
-            {'label': 'Total Amount', 'value': 'Rs. ${totalPurchase.toStringAsFixed(0)}'},
+            {'label': 'Total Amount', 'value': _formatAmount(totalPurchase)}, // Dynamic
           ]),
           pw.SizedBox(height: 20),
 
@@ -143,15 +154,16 @@ class ReportsPdfService {
         ...vendors.asMap().entries.map((entry) {
           final index = entry.key;
           final vendor = entry.value;
+          final amount = double.tryParse(vendor['amount']?.toString() ?? '0') ?? 0.0;
           return pw.TableRow(
             children: [
               _buildTableCell('${index + 1}'),
               _buildTableCell('${vendor['name']}', align: pw.TextAlign.left),
               _buildTableCell('${vendor['count']}'),
-              _buildTableCell('Rs. ${vendor['amount']}'),
+              _buildTableCell(_formatAmount(amount)), // Dynamic
             ],
           );
-        }),
+        }).toList(),
       ],
     );
   }
@@ -254,7 +266,7 @@ class ReportsPdfService {
           ),
         ),
         pw.Text(
-          'Rs. ${amount.toStringAsFixed(0)}',
+          _formatAmount(amount), // Dynamic
           style: pw.TextStyle(
             fontSize: bold ? 18 : 14,
             fontWeight: pw.FontWeight.bold,
@@ -281,22 +293,23 @@ class ReportsPdfService {
         ),
         ...products.map((product) {
           // Safe parsing
-          final profitStr = product['profit']?.toString() ?? '0';
-          final profit = double.tryParse(profitStr) ?? 0.0;
+          final revenue = double.tryParse(product['revenue']?.toString() ?? '0') ?? 0.0;
+          final cost = double.tryParse(product['cost']?.toString() ?? '0') ?? 0.0;
+          final profit = double.tryParse(product['profit']?.toString() ?? '0') ?? 0.0;
           
           return pw.TableRow(
             children: [
               _buildTableCell('${product['name']}', align: pw.TextAlign.left),
               _buildTableCell('${product['quantity']}'),
-              _buildTableCell('Rs. ${product['revenue']}'),
-              _buildTableCell('Rs. ${product['cost']}'),
+              _buildTableCell(_formatAmount(revenue)), // Dynamic
+              _buildTableCell(_formatAmount(cost)), // Dynamic
               _buildTableCell(
-                'Rs. ${product['profit']}',
+                _formatAmount(profit), // Dynamic
                 color: profit >= 0 ? PdfColors.green : PdfColors.red,
               ),
             ],
           );
-        }),
+        }).toList(),
       ],
     );
   }
@@ -330,7 +343,7 @@ class ReportsPdfService {
           _buildSummarySection([
             {'label': 'Categories', 'value': '$totalCategories'},
             {'label': 'Items Sold', 'value': '$totalQuantity'},
-            {'label': 'Total Revenue', 'value': 'Rs. ${totalRevenue.toStringAsFixed(0)}'},
+            {'label': 'Total Revenue', 'value': _formatAmount(totalRevenue)}, // Dynamic
           ]),
           pw.SizedBox(height: 20),
 
@@ -362,8 +375,7 @@ class ReportsPdfService {
           final category = entry.value;
           
           // Safe parsing
-          final revenueStr = category['revenue']?.toString() ?? '0';
-          final revenue = double.tryParse(revenueStr) ?? 0.0;
+          final revenue = double.tryParse(category['revenue']?.toString() ?? '0') ?? 0.0;
           final percentage = totalRevenue > 0 ? (revenue / totalRevenue) * 100 : 0;
           
           return pw.TableRow(
@@ -371,11 +383,11 @@ class ReportsPdfService {
               _buildTableCell('${index + 1}'),
               _buildTableCell('${category['name']}', align: pw.TextAlign.left),
               _buildTableCell('${category['quantity']}'),
-              _buildTableCell('Rs. ${category['revenue']}'),
+              _buildTableCell(_formatAmount(revenue)), // Dynamic
               _buildTableCell('${percentage.toStringAsFixed(1)}%'),
             ],
           );
-        }),
+        }).toList(),
       ],
     );
   }

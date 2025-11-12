@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:pos/helpers/currency_manager.dart';
 import '../../models/grn_model.dart';
 import '../../services/grn_service.dart';
 import '../../services/auth_service.dart';
 import '../../services/pdf_service.dart';
 import 'create_grn_screen.dart';
+import '../../helpers/currency_manager.dart';
+
+
 
 class GRNListScreen extends StatefulWidget {
   const GRNListScreen({super.key});
@@ -153,9 +157,7 @@ class _GRNListScreenState extends State<GRNListScreen> {
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (context) => const CreateGRNScreen(),
-            ),
+            MaterialPageRoute(builder: (context) => const CreateGRNScreen()),
           );
         },
         backgroundColor: const Color(0xFF8B5CF6),
@@ -164,6 +166,8 @@ class _GRNListScreenState extends State<GRNListScreen> {
       ),
     );
   }
+
+  // grn_list_screen.dart - Update _buildGRNCard():
 
   Widget _buildGRNCard(GRN grn) {
     return InkWell(
@@ -184,82 +188,87 @@ class _GRNListScreenState extends State<GRNListScreen> {
             ),
           ],
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        child: ValueListenableBuilder<String>(
+          valueListenable: CurrencyManager.currencySymbol,
+          builder: (context, currency, child) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF8B5CF6).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    grn.grnNumber,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF8B5CF6),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF8B5CF6).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        grn.grnNumber,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF8B5CF6),
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-                Text(
-                  DateFormat('dd MMM yyyy').format(grn.createdAt),
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Color(0xFF64748B),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                const Icon(
-                  Icons.business_rounded,
-                  size: 18,
-                  color: Color(0xFF64748B),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    grn.vendorName,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF0F172A),
+                    Text(
+                      DateFormat('dd MMM yyyy').format(grn.createdAt),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFF64748B),
+                      ),
                     ),
-                  ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.business_rounded,
+                      size: 18,
+                      color: Color(0xFF64748B),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        grn.vendorName,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF0F172A),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '${grn.itemsCount} Items (${grn.totalQuantity} Qty)',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Color(0xFF64748B),
+                      ),
+                    ),
+                    Text(
+                      CurrencyManager.format(grn.totalAmount), // Dynamic
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF10B981),
+                      ),
+                    ),
+                  ],
                 ),
               ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  '${grn.itemsCount} Items (${grn.totalQuantity} Qty)',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Color(0xFF64748B),
-                  ),
-                ),
-                Text(
-                  'Rs. ${grn.totalAmount.toStringAsFixed(0)}',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF10B981),
-                  ),
-                ),
-              ],
-            ),
-          ],
+            );
+          },
         ),
       ),
     );
@@ -278,7 +287,7 @@ class _GRNDetailsDialog extends StatelessWidget {
     if (user != null) {
       final userData = await authService.getUserData(user.uid);
       final businessName = userData?['businessName'] ?? 'Business';
-      
+
       final pdfService = PDFService();
       await pdfService.printGRN(grn, businessName);
     }
@@ -290,7 +299,7 @@ class _GRNDetailsDialog extends StatelessWidget {
     if (user != null) {
       final userData = await authService.getUserData(user.uid);
       final businessName = userData?['businessName'] ?? 'Business';
-      
+
       final pdfService = PDFService();
       await pdfService.shareGRN(grn, businessName);
     }
@@ -344,10 +353,7 @@ class _GRNDetailsDialog extends StatelessWidget {
                   const SizedBox(height: 8),
                   Text(
                     grn.grnNumber,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      color: Colors.white70,
-                    ),
+                    style: const TextStyle(fontSize: 16, color: Colors.white70),
                   ),
                 ],
               ),
@@ -377,7 +383,11 @@ class _GRNDetailsDialog extends StatelessWidget {
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      const Icon(Icons.phone, size: 18, color: Color(0xFF64748B)),
+                      const Icon(
+                        Icons.phone,
+                        size: 18,
+                        color: Color(0xFF64748B),
+                      ),
                       const SizedBox(width: 8),
                       Text(
                         grn.vendorPhone,
@@ -432,14 +442,14 @@ class _GRNDetailsDialog extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              'Qty: ${item.quantity} × Rs. ${item.purchasePrice}',
+                              'Qty: ${item.quantity} × ${CurrencyManager.format(item.purchasePrice)}',
                               style: const TextStyle(
                                 fontSize: 12,
                                 color: Color(0xFF64748B),
                               ),
                             ),
                             Text(
-                              'Rs. ${item.totalAmount.toStringAsFixed(0)}',
+                              CurrencyManager.format(item.totalAmount),
                               style: const TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold,
@@ -465,13 +475,10 @@ class _GRNDetailsDialog extends StatelessWidget {
                 children: [
                   const Text(
                     'Total Amount:',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   Text(
-                    'Rs. ${grn.totalAmount.toStringAsFixed(0)}',
+                    CurrencyManager.format(grn.totalAmount),
                     style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,

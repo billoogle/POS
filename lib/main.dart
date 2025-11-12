@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'screens/login_screen.dart';
 import 'theme/app_theme.dart';
+import 'helpers/currency_manager.dart'; // Import currency manager
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,11 +21,14 @@ void main() async {
   // Initialize Firebase
   await Firebase.initializeApp();
   
+  // === NEW: Initialize Currency Manager ===
+  await CurrencyManager.initialize();
+  
   runApp(const KatPOSApp());
 }
 
 class KatPOSApp extends StatelessWidget {
-  const KatPOSApp({super.key});
+  const KatPOSApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +42,7 @@ class KatPOSApp extends StatelessWidget {
       // Performance Optimization
       builder: (context, child) {
         return MediaQuery(
-          data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
+          data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
           child: child!,
         );
       },

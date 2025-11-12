@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:pos/helpers/currency_manager.dart';
 import '../../theme/app_theme.dart';
 import '../../models/product_model.dart';
 import '../../services/product_service.dart';
@@ -179,7 +180,7 @@ class _ProductFinderScreenState extends State<ProductFinderScreen> {
                 title: Text(product.name),
                 subtitle: Text('Stock: ${product.stock}'),
                 trailing: Text(
-                  'Rs. ${product.salePrice.toStringAsFixed(0)}',
+                  CurrencyManager.format(product.salePrice),
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     color: AppTheme.success,

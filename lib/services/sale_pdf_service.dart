@@ -1,3 +1,5 @@
+// sale_pdf_service.dart - Update all price displays:
+
 import 'dart:io';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -5,8 +7,17 @@ import 'package:printing/printing.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:intl/intl.dart';
 import '../models/sale_model.dart';
+import '../helpers/currency_manager.dart'; // Import
 
 class SalePdfService {
+  // Get current currency symbol
+  String get _currency => CurrencyManager.currentCurrency;
+
+  // Format amount with current currency
+  String _formatAmount(double amount, {int decimals = 0}) {
+    return CurrencyManager.format(amount, decimals: decimals);
+  }
+
   // Generate Sale Invoice PDF
   Future<pw.Document> generateInvoicePdf(Sale sale, String businessName) async {
     final pdf = pw.Document();
@@ -39,7 +50,7 @@ class SalePdfService {
     return pdf;
   }
 
-  // Header Section
+  // Header Section (no changes needed)
   pw.Widget _buildHeader(String businessName, Sale sale) {
     return pw.Row(
       mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
@@ -108,7 +119,7 @@ class SalePdfService {
     );
   }
 
-  // Items Table Section
+  // Items Table Section - UPDATED with dynamic currency
   pw.Widget _buildItemsTable(Sale sale) {
     return pw.Table(
       border: pw.TableBorder.all(color: PdfColors.grey300),
@@ -126,7 +137,7 @@ class SalePdfService {
             _buildTableHeader('Total'),
           ],
         ),
-        // Data Rows
+        // Data Rows - UPDATED
         ...sale.items.asMap().entries.map((entry) {
           final index = entry.key;
           final item = entry.value;
@@ -135,14 +146,14 @@ class SalePdfService {
               _buildTableCell('${index + 1}'),
               _buildTableCell(item.productName, align: pw.TextAlign.left),
               _buildTableCell('${item.quantity}'),
-              _buildTableCell('Rs. ${item.salePrice.toStringAsFixed(0)}'),
+              _buildTableCell(_formatAmount(item.salePrice)), // Dynamic
               _buildTableCell(
-                'Rs. ${item.totalAmount.toStringAsFixed(0)}',
+                _formatAmount(item.totalAmount), // Dynamic
                 bold: true,
               ),
             ],
           );
-        }),
+        }).toList(),
       ],
     );
   }
@@ -175,7 +186,7 @@ class SalePdfService {
     );
   }
 
-  // Total Section
+  // Total Section - UPDATED with dynamic currency
   pw.Widget _buildTotalSection(Sale sale) {
     return pw.Container(
       padding: const pw.EdgeInsets.all(16),
@@ -203,7 +214,7 @@ class SalePdfService {
                 ),
               ),
               pw.Text(
-                'Rs. ${sale.totalAmount.toStringAsFixed(0)}',
+                _formatAmount(sale.totalAmount), // Dynamic
                 style: pw.TextStyle(
                   fontSize: 24,
                   fontWeight: pw.FontWeight.bold,
@@ -236,6 +247,7 @@ class SalePdfService {
     );
   }
 
+  // UPDATED with dynamic currency
   pw.Widget _buildTotalRow(String label, double amount, {PdfColor? color}) {
     return pw.Row(
       mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
@@ -248,7 +260,7 @@ class SalePdfService {
           ),
         ),
         pw.Text(
-          'Rs. ${amount.abs().toStringAsFixed(0)}',
+          _formatAmount(amount.abs()), // Dynamic
           style: pw.TextStyle(
             fontSize: 16,
             fontWeight: pw.FontWeight.bold,
@@ -259,7 +271,7 @@ class SalePdfService {
     );
   }
 
-  // Footer Section
+  // Footer Section (no changes)
   pw.Widget _buildFooter(Sale sale) {
     return pw.Column(
       children: [

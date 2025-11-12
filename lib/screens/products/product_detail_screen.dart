@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:pos/helpers/currency_manager.dart';
 import '../../theme/app_theme.dart';
 import '../../models/product_model.dart';
 import '../../models/grn_model.dart';
@@ -208,9 +209,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 const Divider(color: Colors.white30, height: 16),
                 _buildDetailRow('Current Stock', '${product.stock} units'),
                 const Divider(color: Colors.white30, height: 16),
-                _buildDetailRow('Purchase Price', 'Rs. ${product.purchasePrice.toStringAsFixed(0)}'),
+                _buildDetailRow('Purchase Price', CurrencyManager.format(product.purchasePrice)),
                 const Divider(color: Colors.white30, height: 16),
-                _buildDetailRow('Sale Price', 'Rs. ${product.salePrice.toStringAsFixed(0)}'),
+                _buildDetailRow('Sale Price', CurrencyManager.format(product.salePrice)),
                 const Divider(color: Colors.white30, height: 16),
                 _buildDetailRow(
                   'Profit Margin',
@@ -453,7 +454,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               
               // Price
               Text(
-                'Rs. ${purchase.purchasePrice.toStringAsFixed(0)}',
+                CurrencyManager.format(purchase.purchasePrice),
                 style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
