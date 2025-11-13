@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:pos/helpers/database_helper.dart';
 import 'screens/login_screen.dart';
 import 'theme/app_theme.dart';
 import 'helpers/currency_manager.dart'; // Import currency manager
+import 'helpers/connectivity_manager.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,6 +25,11 @@ void main() async {
   
   // === NEW: Initialize Currency Manager ===
   await CurrencyManager.initialize();
+
+  // === NEW: Initialize Offline Support ===
+  await DatabaseHelper().database; // Initialize DB
+  await ConnectivityManager().initialize(); // Start connectivity listener
+  
   
   runApp(const KatPOSApp());
 }

@@ -11,7 +11,6 @@ import '../helpers/currency_manager.dart'; // Import
 
 class PDFService {
   // Get current currency symbol
-  String get _currency => CurrencyManager.currentCurrency;
 
   // Format amount with current currency
   String _formatAmount(double amount, {int decimals = 0}) {

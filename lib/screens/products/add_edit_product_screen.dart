@@ -425,6 +425,8 @@ const SizedBox(height: 16),
     ).animate().fadeIn(duration: 400.ms, delay: 500.ms).slideX(begin: -0.2);
   },
 ),
+const SizedBox(height: 16),
+
 
               // Stock
               TextFormField(

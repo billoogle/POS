@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:intl/intl.dart'; // formatting ke liye
+import 'package:pos/helpers/connectivity_manager.dart';
+// formatting ke liye
 import 'package:pos/helpers/currency_manager.dart';
 import 'package:pos/screens/products/product_finder_screen.dart';
 import 'package:pos/services/product_service.dart'; // Product service
@@ -68,6 +69,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
+                // ignore: deprecated_member_use
                 color: AppTheme.error.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
@@ -361,7 +363,7 @@ Widget _buildQuickStats() {
         ),
       ),
       const SizedBox(width: 12),
-      
+
       // Total Products Stat Card (No currency needed)
       Expanded(
         child: StreamBuilder<int>(

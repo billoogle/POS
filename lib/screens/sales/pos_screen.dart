@@ -288,9 +288,12 @@ class _POSScreenState extends State<POSScreen> {
 
   @override
   Widget build(BuildContext context) {
+
+    
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
+        
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
@@ -316,7 +319,12 @@ class _POSScreenState extends State<POSScreen> {
           child: Container(color: const Color(0xFFE2E8F0), height: 1),
         ),
       ),
+      
+    
+
       body: Row(
+
+        
         children: [
           // Left Side - Products
           Expanded(
@@ -438,10 +446,23 @@ class _POSScreenState extends State<POSScreen> {
               ],
             ),
           ),
+
+          
         ],
       ),
+
+      
+
+      
     );
+
+    
+    
   }
+
+  
+
+  
 
   Widget _buildProductListItem(Product product) {
     final isOutOfStock = product.stock < 1;

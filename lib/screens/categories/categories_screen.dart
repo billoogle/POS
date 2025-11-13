@@ -61,6 +61,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                 final result = await _categoryService.deleteCategory(category.id);
                 
                 if (mounted) {
+                  // ignore: use_build_context_synchronously
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(result['message']),
@@ -128,6 +129,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
               color: AppTheme.white,
               boxShadow: [
                 BoxShadow(
+                  // ignore: deprecated_member_use
                   color: Colors.black.withOpacity(0.05),
                   blurRadius: 10,
                   offset: const Offset(0, 2),
